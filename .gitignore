@@ -1,0 +1,44 @@
+# Binaries (hasil build)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Folder hasil build
+/bin/
+/build/
+/dist/
+/tmp/
+/vendor/
+/coverage/
+/.terraform/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Go workspace / tools
+*.log
+*.tmp
+*.swp
+*.swo
+.idea/
+.vscode/
+.DS_Store
+
+# Go module cache (tidak perlu di-upload)
+go.sum
+
+# Dependency vendors (kalau kamu tidak commit vendor)
+vendor/
+
+# Coverage files
+coverage.out
+
+# System / OS files
+Thumbs.db
