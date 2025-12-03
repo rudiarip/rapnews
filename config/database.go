@@ -14,16 +14,26 @@ type Postgres struct {
 }
 
 func (cfg Config) ConnectionPostgres() (*Postgres, error) {
-	dbConnString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+
+	dbConnString := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s",
 		cfg.Psql.User,
 		cfg.Psql.Password,
 		cfg.Psql.Host,
 		cfg.Psql.Port,
-		cfg.Psql.DBName,)
+		cfg.Psql.DBName,
+	)
 
-	db, err := gorm.Open(postgres.Open(dbConnString), &gorm.Config{})
+	// FIX UTAMA
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dbConnString,
+		PreferSimpleProtocol: true, // <— MATIKAN PREPARED STATEMENT
+	}), &gorm.Config{
+		PrepareStmt: false, // <— opsional, tapi bagus
+	})
+
 	if err != nil {
-		log.Error().Err(err).Msg("[Connectionpostgres-1] Failed to connect to database" + cfg.Psql.Host)
+		log.Error().Err(err).Msg("[Connectionpostgres-1] Failed to connect to database " + cfg.Psql.Host)
 		return nil, err
 	}
 
@@ -33,10 +43,12 @@ func (cfg Config) ConnectionPostgres() (*Postgres, error) {
 		return nil, err
 	}
 
+	// Jalankan seeder
 	seeds.SeedRoles(db)
 
 	sqlDB.SetMaxOpenConns(cfg.Psql.DBMaxOpen)
 	sqlDB.SetMaxIdleConns(cfg.Psql.DBMaxIdle)
+	sqlDB.SetConnMaxLifetime(0)
 
 	return &Postgres{
 		DB: db,
