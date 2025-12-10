@@ -1,8 +1,8 @@
 package pagination
 
 import (
-	"bwanews/internal/core/domain/entity"
 	"math"
+	"rapnews/internal/core/domain/entity"
 )
 
 type PaginationInterface interface {

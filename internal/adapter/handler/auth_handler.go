@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"bwanews/internal/adapter/handler/request"
-	"bwanews/internal/adapter/handler/response"
-	"bwanews/internal/core/domain/entity"
-	"bwanews/internal/core/service"
+	"rapnews/internal/adapter/handler/request"
+	"rapnews/internal/adapter/handler/response"
+	"rapnews/internal/core/domain/entity"
+	"rapnews/internal/core/service"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"

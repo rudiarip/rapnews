@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"bwanews/internal/app"
+	"rapnews/internal/app"
 
 	"github.com/spf13/cobra"
 )

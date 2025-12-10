@@ -1,17 +1,17 @@
 package app
 
 import (
-	"bwanews/config"
-	"bwanews/internal/adapter/handler"
-	"bwanews/internal/adapter/repository"
-	"bwanews/internal/core/service"
-	"bwanews/lib/auth"
-	"bwanews/lib/middleware"
-	"bwanews/lib/pagination"
 	"context"
 	"log"
 	"os"
 	"os/signal"
+	"rapnews/config"
+	"rapnews/internal/adapter/handler"
+	"rapnews/internal/adapter/repository"
+	"rapnews/internal/core/service"
+	"rapnews/lib/auth"
+	"rapnews/lib/middleware"
+	"rapnews/lib/pagination"
 	"syscall"
 	"time"
 
@@ -41,7 +41,7 @@ func RunServer() {
 
 	//Repository
 	authrepo := repository.NewAuthRepository(db.DB)
-	
+
 	//Service
 	authService := service.NewAuthService(authrepo, cfg, jwt)
 

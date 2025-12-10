@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"bwanews/internal/core/domain/entity"
 	"context"
+	"rapnews/internal/core/domain/entity"
 )
 
 type CategoryHandler interface {
@@ -12,4 +12,3 @@ type CategoryHandler interface {
 	EditCategoryByID(ctx context.Context, req entity.CategoryEntity) error
 	DeleteCategoryByID(ctx context.Context, id int64) error
 }
-

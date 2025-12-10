@@ -1,13 +1,13 @@
 package service
 
 import (
-	"bwanews/config"
-	"bwanews/internal/adapter/repository"
-	"bwanews/internal/core/domain/entity"
-	"bwanews/lib/auth"
-	"bwanews/lib/conv"
 	"context"
 	"errors"
+	"rapnews/config"
+	"rapnews/internal/adapter/repository"
+	"rapnews/internal/core/domain/entity"
+	"rapnews/lib/auth"
+	"rapnews/lib/conv"
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"

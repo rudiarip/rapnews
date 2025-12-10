@@ -1,6 +1,6 @@
 package main
 
-import "bwanews/cmd"
+import "rapnews/cmd"
 
 func main() {
 	cmd.Execute()

@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"bwanews/internal/core/domain/entity"
-	"bwanews/internal/core/domain/model"
 	"context"
+	"rapnews/internal/core/domain/entity"
+	"rapnews/internal/core/domain/model"
 
 	"github.com/gofiber/fiber/v2/log"
 	"gorm.io/gorm"

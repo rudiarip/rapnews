@@ -1,9 +1,9 @@
 package service
 
 import (
-	"bwanews/internal/adapter/repository"
-	"bwanews/internal/core/domain/entity"
 	"context"
+	"rapnews/internal/adapter/repository"
+	"rapnews/internal/core/domain/entity"
 
 	"github.com/gofiber/fiber/v2/log"
 )
@@ -43,7 +43,7 @@ func (c *categoryService) GetCategories(ctx context.Context) ([]entity.CategoryE
 		log.Errorw(code, err)
 		return nil, err
 	}
-	
+
 	return results, nil
 }
 

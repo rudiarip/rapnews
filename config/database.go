@@ -1,8 +1,8 @@
 package config
 
 import (
-	"bwanews/database/seeds"
 	"fmt"
+	"rapnews/database/seeds"
 
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"

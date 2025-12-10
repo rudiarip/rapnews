@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"bwanews/config"
-	"bwanews/internal/core/domain/entity"
 	"fmt"
+	"rapnews/config"
+	"rapnews/internal/core/domain/entity"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"

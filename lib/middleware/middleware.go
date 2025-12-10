@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"bwanews/config"
-	"bwanews/internal/adapter/handler/response"
-	"bwanews/lib/auth"
+	"rapnews/config"
+	"rapnews/internal/adapter/handler/response"
+	"rapnews/lib/auth"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"

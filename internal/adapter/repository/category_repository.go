@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"bwanews/internal/core/domain/entity"
-	"bwanews/internal/core/domain/model"
 	"context"
 	"errors"
+	"rapnews/internal/core/domain/entity"
+	"rapnews/internal/core/domain/model"
 
 	"github.com/gofiber/fiber/v2/log"
 	"gorm.io/gorm"
@@ -47,7 +47,7 @@ func (c *categoryRepository) GetCategories(ctx context.Context) ([]entity.Catego
 		log.Errorw(code, err)
 		return nil, err
 	}
-	
+
 	if len(modelCategories) == 0 {
 		code = "[REPOSITORY] GetCategories - 2"
 		err = errors.New("Data notfound")
@@ -62,9 +62,9 @@ func (c *categoryRepository) GetCategories(ctx context.Context) ([]entity.Catego
 			Title: val.Title,
 			Slug:  val.Slug,
 			User: entity.UserEntity{
-				ID:   val.User.ID,
-				Name: val.User.Name,
-				Email: val.User.Email,
+				ID:       val.User.ID,
+				Name:     val.User.Name,
+				Email:    val.User.Email,
 				Password: val.User.Password,
 			},
 		})
