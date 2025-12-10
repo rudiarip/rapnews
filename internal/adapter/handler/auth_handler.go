@@ -14,7 +14,7 @@ import (
 
 var err error
 var code string
-var errResp response.ErrorResponseDefault
+var errorResp response.ErrorResponseDefault
 var validate = validator.New()
 
 type AuthHandler interface {
@@ -33,19 +33,19 @@ func (a *authHandler) Login(c *fiber.Ctx) error {
 	if err = c.BodyParser(&req); err != nil {
 		code = "[HANDLER] Login - 1"
 		log.Errorw(code, err)
-		errResp.Meta.Status = false
-		errResp.Meta.Message = err.Error()
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
 
-		return c.Status(fiber.StatusBadRequest).JSON(errResp)
+		return c.Status(fiber.StatusBadRequest).JSON(errorResp)
 	}
 
 	if err = validatorLib.ValidateStruct(req); err != nil {
 		code = "[HANDLER] Login - 2"
 		log.Errorw(code, err)
-		errResp.Meta.Status = false
-		errResp.Meta.Message = err.Error()
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
 
-		return c.Status(fiber.StatusBadRequest).JSON(errResp)
+		return c.Status(fiber.StatusBadRequest).JSON(errorResp)
 	}
 
 	reqlogin := entity.LoginRequest{
@@ -58,14 +58,14 @@ func (a *authHandler) Login(c *fiber.Ctx) error {
 	if err != nil {
 		code = "[HANDLER] Login - 3"
 		log.Errorw(code, err)
-		errResp.Meta.Status = false
-		errResp.Meta.Message = err.Error()
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
 
 		if err.Error() == "invalid password" {
-			return c.Status(fiber.StatusUnauthorized).JSON(errResp)
+			return c.Status(fiber.StatusUnauthorized).JSON(errorResp)
 		}
 
-		return c.Status(fiber.StatusInternalServerError).JSON(errResp)
+		return c.Status(fiber.StatusInternalServerError).JSON(errorResp)
 	}
 
 	resp.Meta.Status = true

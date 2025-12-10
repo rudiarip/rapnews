@@ -26,7 +26,7 @@ func RunServer() {
 	cfg := config.NewConfig()
 	db, err := cfg.ConnectionPostgres()
 	if err != nil {
-		log.Fatal("Failed to connect to database: %v", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 		return
 	}
 
@@ -35,18 +35,21 @@ func RunServer() {
 	_ = s3.NewFromConfig(cdfR2)
 
 	jwt := auth.NewJwt(cfg)
-	_ = middleware.NewMiddleware(cfg)
+	middlewareAuth := middleware.NewMiddleware(cfg)
 
 	_ = pagination.NewPagination()
 
 	//Repository
 	authrepo := repository.NewAuthRepository(db.DB)
+	categoryRepo := repository.NewCategoryRepository(db.DB)
 
 	//Service
 	authService := service.NewAuthService(authrepo, cfg, jwt)
+	categoryService := service.NewCategoryService(categoryRepo)
 
 	//Handler
 	authHandler := handler.NewAuthHandler(authService)
+	categoryHandler := handler.NewCategoryHandler(categoryService)
 
 	app := fiber.New()
 	app.Use(cors.New())
@@ -58,6 +61,15 @@ func RunServer() {
 	api := app.Group("/api")
 	api.Post("/login", authHandler.Login)
 
+	// Admin Group
+	adminApp := api.Group("/admin")
+	adminApp.Use(middlewareAuth.CheckToken())
+
+	// category
+	categoryApp := adminApp.Group("/categories")
+	categoryApp.Get("/", categoryHandler.GetCategories)
+	categoryApp.Get("/:id", categoryHandler.GetCategoryByID)
+
 	go func() {
 		if cfg.App.AppPort == "" {
 			cfg.App.AppPort = os.Getenv("APP_PORT")
@@ -65,7 +77,7 @@ func RunServer() {
 
 		err := app.Listen(":" + cfg.App.AppPort)
 		if err != nil {
-			log.Fatal("Failed to start server: %v", err)
+			log.Fatalf("Failed to start server: %v", err)
 		}
 	}()
 

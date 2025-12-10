@@ -50,7 +50,7 @@ func (c *categoryRepository) GetCategories(ctx context.Context) ([]entity.Catego
 
 	if len(modelCategories) == 0 {
 		code = "[REPOSITORY] GetCategories - 2"
-		err = errors.New("Data notfound")
+		err = errors.New("data not found")
 		log.Errorw(code, err)
 		return nil, err
 	}
