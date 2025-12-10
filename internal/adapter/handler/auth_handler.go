@@ -5,6 +5,7 @@ import (
 	"rapnews/internal/adapter/handler/response"
 	"rapnews/internal/core/domain/entity"
 	"rapnews/internal/core/service"
+	validatorLib "rapnews/lib/validator"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -38,7 +39,7 @@ func (a *authHandler) Login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(errResp)
 	}
 
-	if err = validate.Struct(req); err != nil {
+	if err = validatorLib.ValidateStruct(req); err != nil {
 		code = "[HANDLER] Login - 2"
 		log.Errorw(code, err)
 		errResp.Meta.Status = false
