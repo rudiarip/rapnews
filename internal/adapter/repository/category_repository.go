@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"rapnews/internal/core/domain/entity"
 	"rapnews/internal/core/domain/model"
 
@@ -24,7 +25,37 @@ type categoryRepository struct {
 
 // CreateCategory implements CategoryRepository.
 func (c *categoryRepository) CreateCategory(ctx context.Context, req entity.CategoryEntity) error {
-	panic("unimplemented")
+	var countSlug int64
+
+	err := c.db.Table("categories").
+		Where("slug = ? OR slug LIKE ?", req.Slug, req.Slug+"-%").
+		Count(&countSlug).Error
+
+	if err != nil {
+		code = "[REPOSITORY] CreateCategory - 2"
+		log.Errorw(code, err)
+		return err
+	}
+
+	slug := req.Slug
+	if countSlug > 0 {
+		slug = fmt.Sprintf("%s-%d", req.Slug, countSlug)
+	}
+
+	modelCategory := model.Category{
+		Title:        req.Title,
+		Slug:         slug,
+		CreatedByID:  req.User.ID,
+	}
+
+	err = c.db.Create(&modelCategory).Error
+	if err != nil {
+		code = "[REPOSITORY] CreateCategory - 1"
+		log.Errorw(code, err)
+		return err
+	}
+
+	return nil
 }
 
 // DeleteCategoryByID implements CategoryRepository.
@@ -75,7 +106,24 @@ func (c *categoryRepository) GetCategories(ctx context.Context) ([]entity.Catego
 
 // GetCategoryByID implements CategoryRepository.
 func (c *categoryRepository) GetCategoryByID(ctx context.Context, id int64) (*entity.CategoryEntity, error) {
-	panic("unimplemented")
+	var modelCategory model.Category
+	err = c.db.Where("id = ?", id).Preload("User").First(&modelCategory).Error
+	if err != nil {
+		code = "[REPOSITORY] GetCategoryByID - 1"
+		log.Errorw(code, err)
+		return nil, err
+	}
+
+	return &entity.CategoryEntity{
+		ID: modelCategory.ID,
+		Title: modelCategory.Title,
+		Slug: modelCategory.Slug,
+		User: entity.UserEntity{
+			ID: modelCategory.User.ID,
+			Name: modelCategory.User.Name,
+			Email: modelCategory.User.Email,
+		},
+	}, nil
 }
 
 func NewCategoryRepository(db *gorm.DB) CategoryRepository {

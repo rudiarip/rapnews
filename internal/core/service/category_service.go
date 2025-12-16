@@ -4,6 +4,7 @@ import (
 	"context"
 	"rapnews/internal/adapter/repository"
 	"rapnews/internal/core/domain/entity"
+	"rapnews/lib/conv"
 
 	"github.com/gofiber/fiber/v2/log"
 )
@@ -22,7 +23,17 @@ type categoryService struct {
 
 // CreateCategory implements CategoryService.
 func (c *categoryService) CreateCategory(ctx context.Context, req entity.CategoryEntity) error {
-	panic("unimplemented")
+	slug := conv.GenerateSlug(req.Title)
+	req.Slug = slug
+
+	err := c.categoryRepository.CreateCategory(ctx, req)
+	if err != nil {
+		code = "[SERVICE] CreateCategory - 1"
+		log.Errorw(code, err)
+		return err
+	}
+
+	return nil
 }
 
 // DeleteCategoryByID implements CategoryService.
@@ -49,7 +60,14 @@ func (c *categoryService) GetCategories(ctx context.Context) ([]entity.CategoryE
 
 // GetCategoryByID implements CategoryService.
 func (c *categoryService) GetCategoryByID(ctx context.Context, id int64) (*entity.CategoryEntity, error) {
-	panic("unimplemented")
+	result, err := c.categoryRepository.GetCategoryByID(ctx, id)
+	if err != nil {
+		code = "[SERVICE] getCategoryByID - 1"
+		log.Errorw(code, err)
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func NewCategoryService(categoryRepository repository.CategoryRepository) CategoryService {
