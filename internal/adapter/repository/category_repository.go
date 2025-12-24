@@ -67,10 +67,8 @@ func (c *categoryRepository) DeleteCategoryByID(ctx context.Context, id int64) e
 func (c *categoryRepository) EditCategoryByID(ctx context.Context, req entity.CategoryEntity) error {
 	var countSlug int64
 	err := c.db.Table("categories").
-		Where("slug = ? OR slug LIKE ?", req.Slug, req.Slug+"-%").
+		Where("slug = ? AND id != ?", req.Slug, req.ID).
 		Count(&countSlug).Error
-		tes := fmt.Sprintf("slug = ? OR slug LIKE ?", countSlug, req.Slug+"-%")
-		log.Errorw(tes, err)
 
 	if err != nil {
 		code = "[REPOSITORY] EditCategoryByID - 1"
@@ -80,7 +78,6 @@ func (c *categoryRepository) EditCategoryByID(ctx context.Context, req entity.Ca
 
 	slug := req.Slug
 	if countSlug > 0 {
-		countSlug = countSlug + 1
 		slug = fmt.Sprintf("%s-%d", req.Slug, countSlug)
 	}
 	modelCategory := model.Category{

@@ -41,7 +41,6 @@ func (c *categoryService) DeleteCategoryByID(ctx context.Context, id int64) erro
 	panic("unimplemented")
 }
 
-// EditCategoryByID implements CategoryService.
 func (c *categoryService) EditCategoryByID(ctx context.Context, req entity.CategoryEntity) error {
 	categoryData, err := c.categoryRepository.GetCategoryByID(ctx, req.ID)
 	if err != nil {
@@ -57,7 +56,6 @@ func (c *categoryService) EditCategoryByID(ctx context.Context, req entity.Categ
 
 	req.Slug = slug
 
-	// 🔥 PERBAIKAN DI SINI
 	err = c.categoryRepository.EditCategoryByID(ctx, req)
 	if err != nil {
 		code = "[SERVICE] EditCategoryByID - 2"
