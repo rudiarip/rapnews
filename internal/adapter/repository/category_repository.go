@@ -43,9 +43,9 @@ func (c *categoryRepository) CreateCategory(ctx context.Context, req entity.Cate
 	}
 
 	modelCategory := model.Category{
-		Title:        req.Title,
-		Slug:         slug,
-		CreatedByID:  req.User.ID,
+		Title:       req.Title,
+		Slug:        slug,
+		CreatedByID: req.User.ID,
 	}
 
 	err = c.db.Create(&modelCategory).Error
@@ -60,7 +60,27 @@ func (c *categoryRepository) CreateCategory(ctx context.Context, req entity.Cate
 
 // DeleteCategoryByID implements CategoryRepository.
 func (c *categoryRepository) DeleteCategoryByID(ctx context.Context, id int64) error {
-	panic("unimplemented")
+	var count int64
+
+	err := c.db.Table("contents").Where("category_id = ?", id).Count(&count).Error
+	if err != nil {
+		code = "[REPOSITORY] DeleteCategoryByID - 1"
+		log.Errorw(code, err)
+		return err
+	}
+
+	if count > 0 {
+		return errors.New("cannot delete category because it has contents")
+	}
+
+	err = c.db.Where("id = ?", id).Delete(&model.Category{}).Error
+	if err != nil {
+		code = "[REPOSITORY] DeleteCategoryByID - 2"
+		log.Errorw(code, err)
+		return err
+	}
+
+	return nil
 }
 
 // EditCategoryByID implements CategoryRepository.
@@ -81,8 +101,8 @@ func (c *categoryRepository) EditCategoryByID(ctx context.Context, req entity.Ca
 		slug = fmt.Sprintf("%s-%d", req.Slug, countSlug)
 	}
 	modelCategory := model.Category{
-		Title: 			req.Title,
-		Slug: 			slug,
+		Title: req.Title,
+		Slug:  slug,
 		// CreatedByID: 	req.User.ID,
 	}
 
@@ -143,12 +163,12 @@ func (c *categoryRepository) GetCategoryByID(ctx context.Context, id int64) (*en
 	}
 
 	return &entity.CategoryEntity{
-		ID: modelCategory.ID,
+		ID:    modelCategory.ID,
 		Title: modelCategory.Title,
-		Slug: modelCategory.Slug,
+		Slug:  modelCategory.Slug,
 		User: entity.UserEntity{
-			ID: modelCategory.User.ID,
-			Name: modelCategory.User.Name,
+			ID:    modelCategory.User.ID,
+			Name:  modelCategory.User.Name,
 			Email: modelCategory.User.Email,
 		},
 	}, nil
