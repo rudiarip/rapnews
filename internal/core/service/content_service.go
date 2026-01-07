@@ -16,7 +16,7 @@ type ContentService interface {
 	CreateContent(ctx context.Context, req entity.ContentEntity) error
 	UpdateContent(ctx context.Context, req entity.ContentEntity) error
 	DeleteContent(ctx context.Context, id int64) error
-	UploadImageR2(ctx context.Context, req entity.ContentEntity) (string, error)
+	d(ctx context.Context, req entity.ContentEntity) (string, error)
 }
 
 type contentService struct {

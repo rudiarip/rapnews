@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"rapnews/config"
+	"rapnews/internal/adapter/cloudflare"
 	"rapnews/internal/adapter/handler"
 	"rapnews/internal/adapter/repository"
 	"rapnews/internal/core/service"
@@ -30,9 +31,16 @@ func RunServer() {
 		return
 	}
 
+	err = os.MkdirAll("./temp/content", 0755)
+	if err != nil {
+		log.Fatal("Error creating temp directory: %v", err)
+		return
+	}
+
 	//Cloudflare R2
 	cdfR2 := cfg.LoadAwsConfig()
-	_ = s3.NewFromConfig(cdfR2)
+	s3Client := s3.NewFromConfig(cdfR2)
+	r2Adapter := cloudflare.NewCloudflareR2Adapter(s3Client, cfg)
 
 	jwt := auth.NewJwt(cfg)
 	middlewareAuth := middleware.NewMiddleware(cfg)
@@ -42,14 +50,17 @@ func RunServer() {
 	//Repository
 	authrepo := repository.NewAuthRepository(db.DB)
 	categoryRepo := repository.NewCategoryRepository(db.DB)
+	contentRepo := repository.NewContentRepository(db.DB)
 
 	//Service
 	authService := service.NewAuthService(authrepo, cfg, jwt)
 	categoryService := service.NewCategoryService(categoryRepo)
+	contentService := service.NewContentService(contentRepo, cfg, r2Adapter)
 
 	//Handler
 	authHandler := handler.NewAuthHandler(authService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
+	contentHandler := handler.NewContentHandler(contentService)
 
 	app := fiber.New()
 	app.Use(cors.New())
@@ -72,6 +83,15 @@ func RunServer() {
 	categoryApp.Get("/:categoryID", categoryHandler.GetCategoryByID)
 	categoryApp.Put("/:categoryID", categoryHandler.EditCategoryByID)
 	categoryApp.Delete("/:categoryID", categoryHandler.DeleteCategoryByID)
+
+	//Content
+	contentApp := adminApp.Group("/contents")
+	contentApp.Get("/", contentHandler.GetContents)
+	contentApp.Post("/", contentHandler.CreateContent)
+	contentApp.Get("/:contentID", contentHandler.GetContentByID)
+	contentApp.Put("/:contentID", contentHandler.UpdateContent)
+	contentApp.Delete("/:contentID", contentHandler.DeleteContent)
+	contentApp.Post("/upload-image", contentHandler.UploadImageR2)
 
 	go func() {
 		if cfg.App.AppPort == "" {
