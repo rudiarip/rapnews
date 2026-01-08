@@ -4,6 +4,7 @@ import (
 	"rapnews/internal/adapter/handler/response"
 	"rapnews/internal/core/domain/entity"
 	"rapnews/internal/core/service"
+	"rapnews/lib/conv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -25,7 +26,38 @@ type contentHandler struct {
 
 // DeleteContent implements ContentHandler.
 func (ch *contentHandler) DeleteContent(c *fiber.Ctx) error {
-	panic("unimplemented")
+	claims := c.Locals("user").(*entity.JwtData)
+	userID := claims.UserID
+	if userID == 0 {
+		code := "[HANDLER] DeleteContent - 1"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = "Unauthorized access"
+		return c.Status(fiber.StatusUnauthorized).JSON(errorResp)
+	}
+
+	idParam := c.Params("contentID")
+	contentID, err := conv.StringToInt64(idParam)
+	if err != nil {
+		code := "[HANDLER] DeleteContent - 2"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
+		return c.Status(fiber.StatusBadRequest).JSON(errorResp)
+	}
+
+	err = ch.contentService.DeleteContent(c.Context(), contentID)
+	if err != nil {
+		code := "[HANDLER] DeleteContent - 3"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
+		return c.Status(fiber.StatusInternalServerError).JSON(errorResp)
+	}
+
+	defaultSuccessResponse.Meta.Status = true
+	defaultSuccessResponse.Meta.Message = "Success"
+	return c.JSON(defaultSuccessResponse)
 }
 
 // UpdateContent implements ContentHandler.
@@ -38,19 +70,56 @@ func (ch *contentHandler) CreateContent(c *fiber.Ctx) error {
 	panic("unimplemented")
 }
 
-// DeleteContentByID implements ContentHandler.
-func (ch *contentHandler) DeleteContentByID(c *fiber.Ctx) error {
-	panic("unimplemented")
-}
-
-// EditContentByID implements ContentHandler.
-func (ch *contentHandler) EditContentByID(c *fiber.Ctx) error {
-	panic("unimplemented")
-}
-
 // GetContentByID implements ContentHandler.
 func (ch *contentHandler) GetContentByID(c *fiber.Ctx) error {
-	panic("unimplemented")
+	claims := c.Locals("user").(*entity.JwtData)
+	userID := claims.UserID
+	if userID == 0 {
+		code := "[HANDLER] GetContentByID - 1"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = "Unauthorized access"
+		return c.Status(fiber.StatusUnauthorized).JSON(errorResp)
+	}
+
+	idParam := c.Params("contentID")
+	contentID, err := conv.StringToInt64(idParam)
+	if err != nil {
+		code := "[HANDLER] GetContentByID - 2"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
+		return c.Status(fiber.StatusBadRequest).JSON(errorResp)
+	}
+
+	result, err := ch.contentService.GetContentByID(c.Context(), contentID)
+	if err != nil {
+		code := "[HANDLER] GetContentByID - 3"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
+		return c.Status(fiber.StatusInternalServerError).JSON(errorResp)
+	}
+
+	defaultSuccessResponse.Meta.Status = true
+	defaultSuccessResponse.Meta.Message = "Success"
+
+	responseContent := response.ContentResponse{
+		ID:           result.ID,
+		Title:        result.Title,
+		Excerpt:      result.Excerpt,
+		Description:  result.Description,
+		Image:        result.Image,
+		Tags:         result.Tags,
+		Status:       result.Status,
+		CategoryID:   result.CategoryID,
+		CreatedByID:  result.CreatedByID,
+		CreatedAt:    result.CreatedAt.Format(time.RFC3339),
+		CategoryName: result.Category.Title,
+		Author:       result.User.Name,
+	}
+
+	return c.Status(fiber.StatusOK).JSON(responseContent)
 }
 
 // GetContents implements ContentHandler.

@@ -33,7 +33,7 @@ func RunServer() {
 
 	err = os.MkdirAll("./temp/content", 0755)
 	if err != nil {
-		log.Fatal("Error creating temp directory: %v", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 		return
 	}
 
