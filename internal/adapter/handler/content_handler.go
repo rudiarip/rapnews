@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"rapnews/internal/adapter/handler/request"
 	"rapnews/internal/adapter/handler/response"
 	"rapnews/internal/core/domain/entity"
 	"rapnews/internal/core/service"
 	"rapnews/lib/conv"
+	validatorLib "rapnews/lib/validator"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -57,17 +60,136 @@ func (ch *contentHandler) DeleteContent(c *fiber.Ctx) error {
 
 	defaultSuccessResponse.Meta.Status = true
 	defaultSuccessResponse.Meta.Message = "Success"
-	return c.JSON(defaultSuccessResponse)
+	defaultSuccessResponse.Data = nil
+	return c.Status(fiber.StatusOK).JSON(defaultSuccessResponse)
 }
 
 // UpdateContent implements ContentHandler.
 func (ch *contentHandler) UpdateContent(c *fiber.Ctx) error {
-	panic("unimplemented")
+	claims := c.Locals("user").(*entity.JwtData)
+	userID := claims.UserID
+	if userID == 0 {
+		code := "[HANDLER] UpdateContent - 1"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = "Unauthorized access"
+		return c.Status(fiber.StatusUnauthorized).JSON(errorResp)
+	}
+
+	var req request.ContentRequest
+	if err = c.BodyParser(&req); err != nil {
+		code := "[HANDLER] UpdateContent - 2"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = "Invalid request body"
+
+		return c.Status(fiber.StatusBadRequest).JSON(errorResp)
+	}
+
+	if err = validatorLib.ValidateStruct(req); err != nil {
+		code := "[HANDLER] UpdateContent - 3"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
+
+		return c.Status(fiber.StatusBadRequest).JSON(errorResp)
+	}
+
+	idParam := c.Params("contentID")
+	contentID, err := conv.StringToInt64(idParam)
+	if err != nil {
+		code := "[HANDLER] UpdateContent - 4"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
+		return c.Status(fiber.StatusBadRequest).JSON(errorResp)
+	}
+
+	tags := strings.Split(req.Tags, ",")
+	reqEntity := entity.ContentEntity{
+		ID:          contentID,
+		Title:       req.Title,
+		Excerpt:     req.Excerpt,
+		Description: req.Description,
+		Image:       req.Image,
+		Tags:        tags,
+		Status:      req.Status,
+		CategoryID:  req.CategoryID,
+		CreatedByID: int64(userID),
+	}
+
+	err = ch.contentService.UpdateContent(c.Context(), reqEntity)
+	if err != nil {
+		code := "[HANDLER] UpdateContent - 5"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
+		return c.Status(fiber.StatusInternalServerError).JSON(errorResp)
+	}
+
+	defaultSuccessResponse.Meta.Status = true
+	defaultSuccessResponse.Meta.Message = "Success"
+	defaultSuccessResponse.Data = nil
+	return c.Status(fiber.StatusOK).JSON(defaultSuccessResponse)
 }
 
 // CreateContent implements ContentHandler.
 func (ch *contentHandler) CreateContent(c *fiber.Ctx) error {
-	panic("unimplemented")
+	claims := c.Locals("user").(*entity.JwtData)
+	userID := claims.UserID
+	if userID == 0 {
+		code := "[HANDLER] CreateContent - 1"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = "Unauthorized access"
+		return c.Status(fiber.StatusUnauthorized).JSON(errorResp)
+	}
+
+	var req request.ContentRequest
+	if err = c.BodyParser(&req); err != nil {
+		code := "[HANDLER] CreateContent - 2"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = "Invalid request body"
+
+		return c.Status(fiber.StatusBadRequest).JSON(errorResp)
+	}
+
+	if err = validatorLib.ValidateStruct(req); err != nil {
+		code := "[HANDLER] CreateContent - 3"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
+
+		return c.Status(fiber.StatusBadRequest).JSON(errorResp)
+	}
+
+	tags := strings.Split(req.Tags, ",")
+	reqEntity := entity.ContentEntity{
+		Title:       req.Title,
+		Excerpt:     req.Excerpt,
+		Description: req.Description,
+		Image:       req.Image,
+		Tags:        tags,
+		Status:      req.Status,
+		CategoryID:  req.CategoryID,
+		CreatedByID: int64(userID),
+	}
+
+	err = ch.contentService.CreateContent(c.Context(), reqEntity)
+	if err != nil {
+		code := "[HANDLER] CreateContent - 4"
+		log.Errorw(code, err)
+		errorResp.Meta.Status = false
+		errorResp.Meta.Message = err.Error()
+		return c.Status(fiber.StatusInternalServerError).JSON(errorResp)
+	}
+
+	defaultSuccessResponse.Meta.Status = true
+	defaultSuccessResponse.Meta.Message = "Content created successfully"
+	defaultSuccessResponse.Data = nil
+
+	return c.Status(fiber.StatusCreated).JSON(defaultSuccessResponse)
 }
 
 // GetContentByID implements ContentHandler.
