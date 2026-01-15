@@ -16,7 +16,7 @@ type ContentService interface {
 	CreateContent(ctx context.Context, req entity.ContentEntity) error
 	UpdateContent(ctx context.Context, req entity.ContentEntity) error
 	DeleteContent(ctx context.Context, id int64) error
-	UploadImageR2(ctx context.Context, req entity.ContentEntity) (string, error)
+	UploadImageR2(ctx context.Context, req entity.FileUploadEntity) (string, error)
 }
 
 type contentService struct {
@@ -86,8 +86,15 @@ func (c *contentService) UpdateContent(ctx context.Context, req entity.ContentEn
 }
 
 // UploadImageR2 implements ContentService.
-func (c *contentService) UploadImageR2(ctx context.Context, req entity.ContentEntity) (string, error) {
-	panic("unimplemented")
+func (c *contentService) UploadImageR2(ctx context.Context, req entity.FileUploadEntity) (string, error) {
+	urlImage, err := c.r2.UploadImage(&req)
+	if err != nil {
+		code = "[SERVICE] UploadImageR2 - 1"
+		log.Errorw(code, err)
+		return "", err
+	}
+
+	return urlImage, nil
 }
 
 func NewContentService(repo repository.ContentRepository, cfg *config.Config, r2 cloudflare.CloudflareR2Adapter) ContentService {

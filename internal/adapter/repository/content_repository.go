@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ContentRepository interface {
@@ -33,7 +34,7 @@ func (c *contentRepository) CreateContent(ctx context.Context, req entity.Conten
 		Image:       req.Image,
 		Tags:        tags,
 		Status:      req.Status,
-		CategoryID:  req.Category.ID,
+		CategoryID:  req.CategoryID,
 		CreatedByID: req.CreatedByID,
 	}
 
@@ -63,7 +64,10 @@ func (c *contentRepository) DeleteContent(ctx context.Context, id int64) error {
 func (c *contentRepository) GetContentByID(ctx context.Context, id int64) (*entity.ContentEntity, error) {
 	var modelContent model.Content
 
-	err = c.db.Where("id = ?", id).Preload("User", "Category").First(&modelContent).Error
+	err = c.db.Where("id = ?", id).
+		Preload("User").
+		Preload("Category").
+		First(&modelContent).Error
 	if err != nil {
 		code = "[REPOSITORY] GetContentByID - 1"
 		log.Errorw(code, err)
@@ -100,16 +104,23 @@ func (c *contentRepository) GetContentByID(ctx context.Context, id int64) (*enti
 func (c *contentRepository) GetContents(ctx context.Context) ([]entity.ContentEntity, error) {
 	var modelContents []model.Content
 
-	err = c.db.Order("created_at DESC").Preload("User", "Category").Find(&modelContents).Error
+	err := c.db.Order("created_at DESC").Preload(clause.Associations).Find(&modelContents).Error
+
 	if err != nil {
-		code = "[REPOSITORY] GetContents - 1"
+		code := "[REPOSITORY] GetContents - 1"
 		log.Errorw(code, err)
 		return nil, err
 	}
 
 	resps := []entity.ContentEntity{}
 	for _, val := range modelContents {
-		tags := strings.Split(val.Tags, ",")
+		var tags []string
+		if val.Tags != "" {
+			tags = strings.Split(val.Tags, ",")
+		} else {
+			tags = []string{}
+		}
+
 		resp := entity.ContentEntity{
 			ID:          val.ID,
 			Title:       val.Title,
